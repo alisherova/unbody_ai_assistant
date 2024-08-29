@@ -1,40 +1,100 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Study AI assistant implementation
 
-## Getting Started
+## Overview
 
-First, run the development server:
+This README covers the implementation of document filtering functionality and the saving/loading of chat sessions using local storage in a React-based chat application.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Implementation Steps
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 1. Document Filtering Functionality
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+1. **Filter Documents Based on Type**
+   - Implement filtering logic within the search functionality to allow users to filter documents by type.
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+    ```javascript
+    const filteredFiles = fileList.filter(file => selectedFileTypes.includes(file.type));
+    ```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+2. **Update UI Based on Filters**
+   - Update the UI to display only the documents that match the selected filters.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-## Learn More
+### 2. Local Storage Management
 
-To learn more about Next.js, take a look at the following resources:
+1. **Define Storage Key Prefix**
+   - Use a constant `LOCAL_STORAGE_KEY_PREFIX` to uniquely identify each chat session.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+    ```javascript
+    const LOCAL_STORAGE_KEY_PREFIX = 'chatMessages_';
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+2. **Save Messages to Local Storage**
+   - Implement a function to save chat messages to local storage using a session-specific key.
 
-## Deploy on Vercel
+    ```javascript
+    const saveMessagesToLocalStorage = (messages, selectedFileId) => {
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${selectedFileId}`, JSON.stringify(messages));
+    };
+    ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. **Load Messages from Local Storage**
+   - Create a function to retrieve messages from local storage based on the session ID.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+    ```javascript
+    const loadMessagesFromLocalStorage = (selectedFileId) => {
+        const storedMessages = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}${selectedFileId}`);
+        return storedMessages ? JSON.parse(storedMessages) : [];
+    };
+    ```
+
+### 3. Managing Chat Sessions
+
+1. **Load Chat History on Selection**
+   - Load the corresponding chat history when a user selects a session from the sidebar.
+
+    ```javascript
+    const handleChatSelection = (id: string) => {
+    const newId = id.slice(13, id.length)
+    setSelectedFiles([newId])
+    const savedMessages = loadMessagesFromLocalStorage(id);
+    setMessages(savedMessages);
+  };
+    ```
+
+2. **Update and Persist Chats**
+   - Update the chat history after each interaction and save the updated messages to local storage.
+
+    ```javascript
+    const onPrompt = async (prompt) => {
+        setMessages(prevMessages => {
+            const updatedMessages = [...prevMessages, { role: 'user', message: prompt }];
+            saveMessagesToLocalStorage(updatedMessages, selectedFiles[0]);
+            return updatedMessages;
+        }); 
+    };
+    ```
+
+3. **Integrate Sidebar with Sessions**
+   - Populate the sidebar with the saved session titles and enable session switching.
+
+    ```javascript
+    <Sidebar
+        chats={savedSessions}
+        onSessionSelect={handleChatSelection}
+    />
+    ```
+
+## Usage
+
+1. **Filtering Documents**
+   - Use the filtering options in the UI to display documents based on their type (PDF, audio, video, etc.).
+
+2. **Saving and Loading Chats**
+   - Chats are automatically saved to local storage after each user interaction, and can be reloaded by selecting the session from the sidebar.
+
+3. **Running the Application**
+   - Start the development server and access the application in your browser to utilize the document filtering and local storage features.
+
+## Conclusion
+
+This guide provides the steps to implement document filtering and chat session management using local storage in a React-based chat application, ensuring a smooth user experience with persistent data and refined search capabilities.

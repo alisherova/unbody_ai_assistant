@@ -82,7 +82,6 @@ export const HomePage: React.FC<HomePageProps> = ({ className, ...props }) => {
   }
 
   const handleChatSelection = (id: string) => {
-    search.refetch()
     const newId = id.slice(13, id.length)
     setSelectedFiles([newId])
     const savedMessages = loadMessagesFromLocalStorage(id);
